@@ -11,7 +11,7 @@ class PDFController extends Controller
 {
     public function generatePDF($qurbani_id)
     {
-        
+
 
         // echo $qurbani_id;
         // die();
@@ -36,15 +36,15 @@ class PDFController extends Controller
         ])->setPaper($customPaper, 'portrait');
 
         // // $customPaper = array(0,0,567.00,283.80);
-        
+
         // // $pdf = PDF::loadView('pdfview', $data)->setPaper($customPaper, 'landscape');
 
          return $pdf->download($pdfname.'.pdf');
     }
-    
+
      public function generatefinallist($day)
     {
-        
+
         // echo $day;
         // die();
         // echo $qurbani_id;
@@ -68,11 +68,11 @@ class PDFController extends Controller
         $customPaper = 'A4';
         //$customPaper = [0, 0, 226.77, 567.00];
         $pdf = PDF::loadView('finallist', [
-            'columns' => $columns           
+            'columns' => $columns
         ])->setPaper($customPaper, 'portrait');
 
         // // $customPaper = array(0,0,567.00,283.80);
-        
+
         // // $pdf = PDF::loadView('pdfview', $data)->setPaper($customPaper, 'landscape');
 
          return $pdf->download('Qurbani_final_list.pdf');

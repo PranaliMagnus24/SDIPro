@@ -4,37 +4,39 @@ use App\Models\General;
 use App\Models\User;
 use App\Models\Qurbani;
 use App\Models\QurbaniHisse;
+use App\Models\QurbaniDay;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 use PDF; // Import the PDF facade
 
 class PDFController extends Controller
 {
-    public function generatePDF($qurbani_id)
+     public function generatePDF($qurbani_id)
 {
     $qurbaniid = base64_decode($qurbani_id);
-    $qurbani = Qurbani::find($qurbaniid);
+    $qurbani = Qurbani::findOrFail($qurbaniid);
     $qurbanihisse = QurbaniHisse::where('qurbani_id', $qurbaniid)->get();
     $users = User::find($qurbani->user_id);
     $general = General::first();
-    $pdfname = $qurbani->contact_name . "_" . $qurbani->id;
-   // return view('pdfview',compact('qurbani', 'qurbanihisse', 'users', 'general'));
-    $customPaper = 'A5';
-    // return view('pdfview',compact('qurbani', 'qurbanihisse', 'users', 'general'));
+
     $pdf = \PDF::loadView('pdfview', [
         'qurbani' => $qurbani,
         'qurbanihisse' => $qurbanihisse,
         'users' => $users,
         'general' => $general
-    ])
-    ->setPaper('A5', 'portrait')
-    ->setOptions([
-        'isRemoteEnabled' => true,
-        'isHtml5ParserEnabled' => true,
-        'isPhpEnabled' => true,
-    ]);
-    
+    ])->setPaper('A5', 'portrait');
 
-    return $pdf->download($pdfname . '.pdf'); // this opens in new tab
+    // Save PDF to public/qurbani_pdf
+    $pdfFolder = public_path('qurbani_pdf');
+    if (!file_exists($pdfFolder)) {
+        mkdir($pdfFolder, 0777, true);
+    }
+
+    $pdfPath = "{$pdfFolder}/qurbani_{$qurbani->id}.pdf";
+    $pdf->save($pdfPath);
+
+    // Force download the saved file
+    return response()->download($pdfPath);
 }
 
     // public function generatePDF($qurbani_id)
@@ -45,9 +47,9 @@ class PDFController extends Controller
     //     $users = User::find($qurbani->user_id);
     //     $general = General::first();
     //     $pdfname = $qurbani->contact_name . "_" . $qurbani->id;
-    
+
     //     $customPaper = 'A5';
-    //     return view('pdfview', compact('qurbani', 'qurbanihisse', 'users', 'general')); 
+    //     return view('pdfview', compact('qurbani', 'qurbanihisse', 'users', 'general'));
     //     // $pdf = PDF::loadView('pdfview', [
     //     //     'qurbani' => $qurbani,
     //     //     'qurbanihisse' => $qurbanihisse,
@@ -58,44 +60,109 @@ class PDFController extends Controller
     //     // ->setOptions([
     //     //     'isRemoteEnabled' => true,
     //     // ]);
-    
+
     //     // return $pdf->download($pdfname . '.pdf');
     // }
-    
+
+    // public function generatefinallist($day)
+    // {
+
+    //     $query = QurbaniHisse::query();
+    //     if($day==1){
+    //         $query->where('created_at','<=',date('2025-05-13 21:59:59'));
+    //     }else if($day==2){
+    //         $query->where('created_at','>',date('2025-05-13 21:59:59'))
+    //         ->where('created_at','<=',date('2025-05-14 23:59:59'));
+    //     }
+    //     $qurbanihisse = $query->get()->toArray();
+
+    //     $columns = array_chunk($qurbanihisse, 7);
+
+    //     $customPaper = 'A4';
+    //     $pdf = PDF::loadView('finallist', [
+    //         'columns' => $columns
+    //     ])->setPaper($customPaper, 'portrait');
+
+    //      return $pdf->download('Qurbani_final_list.pdf');
+    // }
+
     public function generatefinallist($day)
-    {
-        
-        // echo $day;
-        // die();
-        // echo $qurbani_id;
-        // die();
-        // $qurbaniid = base64_decode($qurbani_id);
-        // $qurbani = Qurbani::find($qurbaniid);
+{
+    $qurbaniDays = QurbaniDay::find(1);
 
-        $query = QurbaniHisse::query();
-        if($day==1){
-            $query->where('created_at','<=',date('2024-06-16 21:59:59'));
-        }else if($day==2){
-            $query->where('created_at','>',date('2024-06-16 21:59:59'))
-            ->where('created_at','<=',date('2024-06-17 23:59:59'));
-        }
-        $qurbanihisse = $query->get()->toArray();
-
-        $columns = array_chunk($qurbanihisse, 7);
-        //echo "<pre>"; echo  print_r($columns);
-        // return view('finallist',compact('columns'));
-        // die();
-         
-        $customPaper = 'A4';
-        //$customPaper = [0, 0, 226.77, 567.00];
-        $pdf = PDF::loadView('finallist', [
-            'columns' => $columns           
-        ])->setPaper($customPaper, 'portrait');
-
-        // // $customPaper = array(0,0,567.00,283.80);
-        
-        // // $pdf = PDF::loadView('pdfview', $data)->setPaper($customPaper, 'landscape');
-
-         return $pdf->download('Qurbani_final_list.pdf');
+    if (!$qurbaniDays) {
+        return redirect()->back()->with('error', 'Qurbani day configuration not found.');
     }
+
+    $query = QurbaniHisse::query();
+
+    $dayOneStart = Carbon::parse($qurbaniDays->day_one)->startOfDay();
+    $dayOneEnd   = Carbon::parse($qurbaniDays->day_one)->endOfDay();
+    $dayTwoStart = Carbon::parse($qurbaniDays->day_two)->startOfDay();
+    $dayTwoEnd   = Carbon::parse($qurbaniDays->day_two)->endOfDay();
+
+    if ($day == 1) {
+        $query->whereBetween('created_at', [$dayOneStart, $dayOneEnd]);
+    } elseif ($day == 2) {
+        $query->whereBetween('created_at', [$dayTwoStart, $dayTwoEnd]);
+    }
+
+    $qurbanihisse = $query->get()->toArray();
+    $columns = array_chunk($qurbanihisse, 7);
+
+    $customPaper = 'A4';
+    $pdf = PDF::loadView('finallist', [
+        'columns' => $columns
+    ])->setPaper($customPaper, 'portrait');
+
+    return $pdf->download('Qurbani_final_list.pdf');
+}
+
+
+        //////////////Final list day1 and day2
+//     public function finalListView($day)
+// {
+//     $query = QurbaniHisse::query();
+
+//     if ($day == 1) {
+//         $query->where('created_at', '<=', date('2025-05-13 21:59:59'));
+//     } elseif ($day == 2) {
+//         $query->where('created_at', '>', date('2025-05-13 21:59:59'))
+//               ->where('created_at', '<=', date('2025-05-14 23:59:59'));
+//     }
+
+//     $qurbanihisse = $query->get()->toArray();
+//     $columns = array_chunk($qurbanihisse, 7);
+
+//     return view('qurbanis.final_list', compact('columns', 'day'));
+// }
+
+public function finalListView($day)
+{
+    $qurbaniDays = QurbaniDay::find(1);
+
+    if (!$qurbaniDays) {
+        return view('qurbanis.final_list', ['columns' => [], 'day' => $day]);
+    }
+
+    $query = QurbaniHisse::query();
+
+    $dayOneStart = Carbon::parse($qurbaniDays->day_one)->startOfDay();
+    $dayOneEnd   = Carbon::parse($qurbaniDays->day_one)->endOfDay();
+    $dayTwoStart = Carbon::parse($qurbaniDays->day_two)->startOfDay();
+    $dayTwoEnd   = Carbon::parse($qurbaniDays->day_two)->endOfDay();
+
+    if ($day == 1) {
+        $query->whereBetween('created_at', [$dayOneStart, $dayOneEnd]);
+    } elseif ($day == 2) {
+        $query->whereBetween('created_at', [$dayTwoStart, $dayTwoEnd]);
+    }
+
+    $qurbanihisse = $query->get()->toArray();
+    $columns = array_chunk($qurbanihisse, 7);
+
+    return view('qurbanis.final_list', compact('columns', 'day'));
+}
+
+
 }

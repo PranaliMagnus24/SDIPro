@@ -143,7 +143,7 @@
       <!-- Basic Info -->
       <div class="mb-3">
         <label for="contact_name"><strong>Name:<span class="text-danger">*</span></strong></label>
-        <input type="text" id="contact_name" name="contact_name" class="form-control @error('contact_name') is-invalid @enderror" 
+        <input type="text" id="contact_name" name="contact_name" class="form-control @error('contact_name') is-invalid @enderror"
                value="{{ old('contact_name') }}" placeholder="Your full name">
         @error('contact_name') <span class="text-danger">{{ $message }}</span> @enderror
       </div>
@@ -151,14 +151,14 @@
       <div class="row g-3">
         <div class="col-md-6">
           <label for="mobile"><strong>Mobile:<span class="text-danger">*</span></strong></label>
-          <input type="text" id="mobile" name="mobile" maxlength="10" value="{{ old('mobile') }}" 
+          <input type="text" id="mobile" name="mobile" maxlength="10" value="{{ old('mobile') }}"
                  class="form-control @error('mobile') is-invalid @enderror" placeholder="10-digit mobile number">
           @error('mobile') <span class="text-danger">{{ $message }}</span> @enderror
         </div>
         <div class="col-md-6">
           <label for="receipt_book"><strong>Receipt Book:</strong></label>
           <input type="text" id="receipt_book" name="receipt_book" class="form-control @error('receipt_book') is-invalid @enderror"
-                 value="{{ old('receipt_book', isset($qurbani) ? $qurbani->receipt_book : '') }}" 
+                 value="{{ old('receipt_book', isset($qurbani) ? $qurbani->receipt_book : '') }}"
                  placeholder="Enter Receipt Number (Optional)">
           @error('receipt_book') <span class="text-danger">{{ $message }}</span> @enderror
         </div>
@@ -214,7 +214,7 @@
           <label for="payment_method"><strong>Payment Method:<span class="text-danger">*</span></strong></label>
           <select name="payment_type" id="payment_method" class="form-control" onchange="togglePaymentDetails(this);">
             <option value="">Select Payment Method</option>
-           
+
             <option value="RazorPay">Online (RazorPay)</option>
           </select>
           @error('payment_type') <span class="text-danger">{{ $message }}</span> @enderror
@@ -294,7 +294,7 @@
 <script>
 $(document).ready(function () {
   let hissaAmount = 1500;
-  
+
   function calculateTotal() {
     let total = 0;
     $(".rowClass").each(function () {
@@ -303,7 +303,7 @@ $(document).ready(function () {
       let gender = $row.find(".aqiqah-select").val();
       let name = $row.find(".name-input").val().trim();
       let hissaCount = 1;
-      
+
       if (name !== "") {
         if (isAqiqah) {
           hissaCount = (gender === "Male") ? 2 : 1;
@@ -319,7 +319,7 @@ $(document).ready(function () {
     });
     $("#txtamount").text(total.toFixed(2));
   }
-  
+
   // Add new row
   $("#addBtn").click(function () {
     let newRow = $(".rowClass:first").clone();
@@ -330,7 +330,7 @@ $(document).ready(function () {
     newRow.find(".hissa-input").val(1);
     $("#tbody").append(newRow);
   });
-  
+
   // Remove row
   $(document).on("click", ".remove", function () {
     if ($(".rowClass").length > 1) {
@@ -338,12 +338,12 @@ $(document).ready(function () {
       calculateTotal();
     }
   });
-  
+
   // Event listeners for recalculating total
   $(document).on("input change", ".aqiqah-check, .aqiqah-select, .name-input", function () {
     calculateTotal();
   });
-  
+
   // Toggle Online Payment Details
   window.togglePaymentDetails = function(select) {
     if (select.value === 'RazorPay') {
@@ -352,7 +352,7 @@ $(document).ready(function () {
       $("#online-payment-details").hide();
     }
   };
-  
+
   // Initial calculation
   calculateTotal();
 });

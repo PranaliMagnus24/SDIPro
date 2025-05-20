@@ -1,244 +1,223 @@
 @extends('layouts.app')
-
 @section('content')
-<div class="row">
+<div class="row mb-3">
     <div class="col-lg-12 margin-tb">
         <div class="pull-left">
             <h2>Edit Qurbani</h2>
         </div>
         <div class="pull-right">
-            <a class="btn btn-primary btn-sm" href="{{ route('qurbanis.index') }}"><i class="fa fa-arrow-left"></i> Back</a>
+            <a class="btn btn-primary btn-sm" href="{{ route('qurbanis.index') }}">
+                <i class="fa fa-arrow-left"></i> Back
+            </a>
         </div>
     </div>
 </div>
 
-@if ($errors->any())
-    <div class="alert alert-danger">
-        <strong>Whoops!</strong> There were some problems with your input.<br><br>
-        <ul>
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif
-
-<form action="{{ route('qurbanis.update',$qurbani->id) }}" method="POST">
+<form action="{{ route('qurbani.update', $qurbani->id) }}" method="POST" enctype="multipart/form-data">
     @csrf
     @method('PUT')
-
-    <div class="row">
-        <div class="col-xs-12 col-sm-12 col-md-12">
-            <div class="form-group">
-                <strong>Name:</strong>
-                <input type="text" name="contact_name" class="form-control" value="{{ $qurbani->contact_name }}" placeholder="Name" required>
+   <div class="row mb-3">
+        <div class="col-md-6">
+            <label for=""><strong>Name: <span style="color: red;">*</span></strong></label>
+                <input type="text" name="contact_name" class="form-control @error('name') is-invalid @enderror" value="{{ old('contact_name', $qurbani->contact_name) }}" placeholder="Name">
+            @error('contact_name')
+                <span class="text-danger">{{ $message }}</span>
+            @enderror
             </div>
-        </div>
-        <div class="col-xs-12 col-sm-12 col-md-12">
-            <div class="form-group">
-                <strong>Mobile:</strong>
-                <input type="number" name="mobile" maxlength="10" value="{{ $qurbani->mobile }}"class="form-control" placeholder="mobile" required>
+            <div class="col-md-3">
+                <label for=""><strong>Mobile: <span style="color: red;">*</span></strong></label>
+                <input type="text" name="mobile" maxlength="10" value="{{ old('mobile', $qurbani->mobile) }}" class="form-control @error('mobile') is-invalid @enderror" placeholder="Mobile" >
+                @error('mobile')
+                    <span class="text-danger">{{ $message }}</span>
+                @enderror
             </div>
-        </div>
+            <div class="col-md-3">
+                <label for=""><strong>Alternative Mobile</strong></label>
+                <input type="text" name="alternative_mobile" maxlength="10" value="{{ old('alternative_mobile', $qurbani->alternative_mobile) }}" class="form-control @error('alternative_mobile') is-invalid @enderror" placeholder="Alternative Mobile" >
+                @error('alternative_mobile')
+                    <span class="text-danger">{{ $message }}</span>
+                @enderror
+            </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label for=""><strong>Receipt Book:</strong></label>
+            <input type="text" name="receipt_book" class="form-control @error('receipt_book') is-invalid @enderror"
+                        value="{{ old('receipt_book', isset($qurbani) ? $qurbani->receipt_book : '') }}" placeholder="Enter Receipt Number (Optional)">
+            @error('receipt_book')
+                <span class="text-danger">{{ $message }}</span>
+            @enderror
 
-        <div class="container pt-4">
+        </div>
+        <div class="col-md-6">
+            <label for=""><strong>Select Day</strong></label>
+            <select name="qurbani_days" id="day-select" class="form-select">
+                <option value="">--Select Day--</option>
+                <option value="Day 1" {{ old('qurbani_days', $qurbani->qurbani_days) == 'Day 1' ? 'selected' : '' }}>Day 1</option>
+                <option value="Day 2" {{ old('qurbani_days', $qurbani->qurbani_days) == 'Day 2' ? 'selected' : '' }}>Day 2</option>
+            </select>
+        </div>
+    </div>
+    <div class="container pt-4">
         <div class="table-responsive">
             <table class="table table-bordered">
                 <thead>
                     <tr>
-                        
-                        <th class="text-center">
-                              Name
-                          </th>
-                        <th class="text-center">
-                              Aqiqah
-                          </th>
-                          <th class="text-center">
-                              Remove
-                          </th>
+                        <th class="text-center">Aqiqah</th>
+                        <th class="text-center">Name</th>
+                        <th class="text-center">Gender</th>
+                        <th class="text-center">Hissa</th>
+                        <th class="text-center">Remove</th>
                     </tr>
                 </thead>
                 <tbody id="tbody">
-                        @foreach ($qurbanihisse as $hisse)
-                            
-                        
-                            <tr class="rowClass"> 
-                                <td class="row-index text-center"> 
-                                    <input type="text" name="name[1]" class="form-control hisse" placeholder="Name" value="{{$hisse->name}}" required> 
-                                </td>
-                                <td class="row-index text-center"> 
-                                    <input type="checkbox" name="aqiqah[1]" placeholder="aqiqah"  value="1" @if ($hisse->aqiqah==1)
-                                        checked="checked"
-                                    @endif> 
-                                   
-                                </td>  
-                                <td class="text-center"> 
-                                    <button class="btn btn-danger remove"
-                                        type="button">Remove
-                                    </button> 
-                                </td> 
-                        </tr>
-                        @endforeach    
+                    @if (old('name'))
+                    @foreach (old('name') as $index => $name)
+                    <tr class="rowClass">
+                        <td class="text-center">
+                            <input type="hidden" class="aqiqah-input" name="aqiqah[]" value="{{ old('aqiqah')[$index] ?? 0 }}">
+                            <input type="checkbox" class="aqiqah-check" {{ (old('aqiqah')[$index] ?? 0) == 1 ? 'checked' : '' }}>
+                        </td>
+                        <td class="text-center">
+                            <input type="text" name="name[]" class="form-control name-input" value="{{ $name }}" placeholder="Name">
+                        </td>
+                        <td class="text-center">
+                            <select name="gender[]" class="form-select aqiqah-select" style="{{ (old('aqiqah')[$index] ?? 0) == 1 ? '' : 'display:none;' }}">
+                                <option value="">Select</option>
+                                <option value="Male" {{ old('gender')[$index] == 'Male' ? 'selected' : '' }}>Male</option>
+                                <option value="Female" {{ old('gender')[$index] == 'Female' ? 'selected' : '' }}>Female</option>
+                            </select>
+                        </td>
+                        <td class="text-center">
+                            <input type="number" name="hissa[]" class="form-control hissa-input" value="{{ old('hissa')[$index] ?? 1 }}" readonly>
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-danger remove" type="button">Remove</button>
+                        </td>
+                    </tr>
+                    @endforeach
+                    @elseif($qurbanihisse && $qurbanihisse->count() > 0)
+                    @foreach($qurbanihisse as $hisse)
+                    <tr class="rowClass">
+                        <td class="text-center">
+                            <input type="hidden" class="aqiqah-input" name="aqiqah[]" value="{{ $hisse->aqiqah ? 1 : 0 }}">
+                            @if($hisse->name !== 'HAZRAT MOHAMMAD SALLALLAHU ALAIHI WASALLAM')
+                            <input type="checkbox" class="aqiqah-check" {{ $hisse->aqiqah ? 'checked' : '' }}>
+                            @endif
+                        </td>
+                        <td class="text-center" style="width: 448px;">
+                            <input type="text" name="name[]" class="form-control name-input" value="{{ old('name', $hisse->name) }}" placeholder="Name">
+                        </td>
+                        <td class="text-center">
+                            <select name="gender[]" class="form-select aqiqah-select" style="{{ $hisse->aqiqah ? '' : 'display:none;' }}">
+                                <option value="">Select</option>
+                                <option value="Male" {{ (old('gender', $hisse->gender) == 'Male') ? 'selected' : '' }}>Male</option>
+                                <option value="Female" {{ (old('gender', $hisse->gender) == 'Female') ? 'selected' : '' }}>Female</option>
+                            </select>
+                        </td>
+                        <td class="text-center">
+                            <input type="number" name="hissa[]" class="form-control hissa-input" value="{{ old('hissa', $hisse->hissa) }}" readonly>
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-danger remove" type="button">Remove</button>
+                        </td>
+                    </tr>
+                    @endforeach
+                    @else
+                    {{-- default row --}}
+                    <tr class="rowClass">
+                        <td class="text-center">
+                            <input type="hidden" class="aqiqah-input" name="aqiqah[]" value="0">
+                            <input type="checkbox" class="aqiqah-check">
+                        </td>
+                        <td class="text-center">
+                            <input type="text" name="name[]" class="form-control name-input" placeholder="Name">
+                        </td>
+                        <td class="text-center">
+                            <select name="gender[]" class="form-select aqiqah-select" style="display:none;">
+                                <option value="">Select</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </td>
+                        <td class="text-center">
+                            <input type="number" name="hissa[]" class="form-control hissa-input" value="1" readonly>
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-danger remove" type="button">Remove</button>
+                        </td>
+                    </tr>
+                    @endif
                 </tbody>
             </table>
         </div>
-        <button class="btn btn-md btn-primary"
-                id="addBtn" type="button">
-            Add New Row
-        </button>
-    </div>  
-
-        <div class="row">
-                    <div class="col-xs-6 col-sm-6 col-md-6 hide">
-                        <div class="form-group">
-                            <strong>Total Hisse :</strong>
-                            <span id="txthisse">{{ count($qurbanihisse) }}</span>
-                        </div>
-                    </div>
-
-                    <div class="col-xs-6 col-sm-6 col-md-6 hide">
-                        <div class="form-group">
-                            <strong>Amount :</strong>
-                            &#8377; <span id="txtamount">{{ count($qurbanihisse)*1500 }}</span>
-                        </div>
-                    </div>
-                
-            
-        </div>
-        <div class="col-xs-12 col-sm-12 col-md-12">
+        <button class="btn btn-md btn-primary" id="addBtn" type="button">Add New Row</button>
+        @if(!isset($qurbanihisse) || !$qurbanihisse->contains('name', 'HAZRAT MOHAMMAD SALLALLAHU ALAIHI WASALLAM'))
+        <button class="btn btn-md btn-primary" id="addBtnHuzur" type="button">Add Huzur</button>
+        @endif
+    </div>
+    <div class="row pt-3">
+        <div class="col-md-6">
             <div class="form-group">
-                <strong>Payment Method:</strong> {{$qurbani->payment_type}}
-                <select name="payment_type" onChange="onlinepaymentdetails(this);" required>
-                    <option value="">Payment Method</option>
-                    <option value="Cash">Cash</option>
-                    <option value="GPay">UPI Payment</option>
-                    <!-- <option value="Not Paid">Not Paid</option> -->
-                </select>
+                <strong>Total Amount:</strong>
+                ₹ <span id="txtamount">{{ old('total_amount', $qurbani->total_amount ?? 0) }}</span>
             </div>
         </div>
-
-        <div class="row"  id="txndetails">
-                <div class="col-xs-6 col-sm-6 col-md-6 hide" >
-                    <img src="/gpay-qrcode.jpg" class="img-responsive" style="width: 100%; height:80%;" alt="UPI Payment QR Code">
+        <div class="col-md-6">
+            <strong>Payment Method:<span style="color: red;">*</span></strong>
+            <select name="payment_type" id="payment_method" class="form-select" onchange="togglePaymentDetails(this);">
+                <option value="">Payment Method</option>
+                <option value="Cash" {{ old('payment_type', $qurbani->payment_type) == 'Cash' ? 'selected' : '' }}>Cash</option>
+                <option value="RazorPay" {{ old('payment_type', $qurbani->payment_type) == 'Online' ? 'selected' : '' }}>Online</option>
+            </select>
+            @error('payment_type')
+            <span class="text-danger">{{ $message }}</span>
+            @enderror
+            <div class="form-group mt-3" id="razorpay-details" style="display: none;">
+                    <label for="transaction_number"><strong>Transaction ID:<span style="color: red;">*</span></strong></label>
+                    <input type="text" name="transaction_number" id="transaction_number"
+                    class="form-control @error('transaction_number') is-invalid @enderror"
+                    placeholder="Enter Transaction ID" value="{{ old('transaction_number', $qurbani->transaction_number)}}">
+                    @error('transaction_number')
+                    <span class="text-danger">{{ $message }}</span>
+                    @enderror
                 </div>
-                <div class="col-xs-6 col-sm-6 col-md-6 hide">
-                    <div class="form-group">
-                        <strong>Transaction Id:</strong>
-                            <input type="text" name="transaction_number" class="form-control" placeholder="Transaction Number"  value="{{$qurbani->transaction_number}}"  onblur="funcSubmitbutton(this);">
-                    </div>
+                <div class="attachement form-control mt-3" style="display: none;" id="attachement">
+                    <label for="" class="form-label"><strong>Upload Attachment</strong></label>
+                    <input type="file" class="form-control" name="upload_payment">
+                    @if(!empty($qurbani->upload_payment))
+                    @php
+                    $filePath = public_path($qurbani->upload_payment);
+                    $fileExtension = pathinfo($filePath, PATHINFO_EXTENSION);
+                    @endphp
+                    @if(file_exists($filePath))
+                    @if(in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png']))
+                    <img src="{{ asset($qurbani->upload_payment) }}" style="height:100px; width:100px;" alt="Uploaded Image">
+                    @elseif(strtolower($fileExtension) === 'pdf')
+                    <a href="{{ asset($qurbani->upload_payment) }}" target="_blank" class="mt-2">
+                        View PDF Document
+                    </a>
+                    @else
+                    <p class="text-danger mt-2">Unsupported file type: {{ $fileExtension }}</p>
+                    @endif
+                    @else
+                    <p class="text-danger mt-2">File not found.</p>
+                    @endif
+                    @endif
                 </div>
-               
+            </div>
         </div>
-        
-
-        <div class="col-xs-12 col-sm-12 col-md-12 text-center">
-                <button type="submit" class="btn btn-primary btn-sm mb-3 mt-2" id="btnsubmit"><i class="fa-solid fa-floppy-disk"></i> Submit</button>
-        </div>
+        <div class="col-md-12 text-center">
+        <button type="submit" class="btn btn-primary btn-sm mb-3 mt-2">
+            <i class="fa-solid fa-floppy-disk"></i> Update
+        </button>
     </div>
+</div>
 </form>
-
-<!-- Bootstrap JS CDN -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"         integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"       crossorigin="anonymous">
-    </script>
-<!-- jQuery CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
-            integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="  crossorigin="anonymous" referrerpolicy="no-referrer">
-      </script>
-<script>
-
-function submitForm() {
-    var formData = $('#myForm').serialize(); // Serialize form data
-    $.ajax({
-        type: 'POST',
-        url: '/submit-form', // Change this to your route URL
-        data: formData,
-        success: function(response) {
-            // Handle successful response
-            console.log(response);
-        },
-        error: function(xhr, status, error) {
-            // Handle error
-            console.error(xhr.responseText);
-        }
-    });
-}
-
-    function onlinepaymentdetails(val){
-       // alert(val.value);
-        if(val.value=='GPay'){
-            $('#txndetails').show();
-            //$('#btnsubmit').disabled();
-            $('#btnsubmit').attr('disabled','disabled');
-            
-        }else{
-            $('#txndetails').hide();
-            $('#btnsubmit').removeAttr('disabled');
-        }
-
-        // $('.hisse').on('input', function() {
-        //     var count = $('.hisse').filter(function() {
-        //         return this.value.trim() !== ''; // Check if value is not empty
-        //     }).length;
-        //     console.log("Count: " + count);
-        //     $("#txtamount").html(count*1500);
-        // });
-
-        //alert($('input[class="hisse"]').length);
-    }
-
-    function funcSubmitbutton(val){
-        //alert(val.value);
-        if(val.value.length>0){
-            $('#btnsubmit').removeAttr('disabled');
-        }else{
-            $('#btnsubmit').attr('disabled','disabled');
-        }
-    }
-
-
-    $(document).ready(() => {
-        $('#txndetails').hide();
-
-        //$("#txtamount").html($("#txtamount").text()*1500);
-
-
-        let count=2;
-
-        
-        //alert($('input[class="hisse"]').length);
-        
-        // Adding row on click to Add New Row button
-        $('#addBtn').click(function () {
-
-            //$('#txthisse').html((count));
-
-            let dynamicRowHTML = `
-            <tr class="rowClass""> 
-                <td class="row-index text-center"> 
-                    <input type="text" name="name[${count}]" class="form-control hisse" placeholder="Name"> 
-                </td>
-                <td class="row-index text-center"> 
-                    <input type="checkbox" name="aqiqah[${count}]" placeholder="aqiqah" value="1"> 
-                </td>  
-                <td class="text-center"> 
-                    <button class="btn btn-danger remove"
-                        type="button">Remove
-                    </button> 
-                </td> 
-            </tr>`;
-            $('#tbody').append(dynamicRowHTML);
-            count++;
-            
-            
-        });
- 
-        // Removing Row on click to Remove button
-        $('#tbody').on('click', '.remove', function () {
-           // $('#txthisse').html(($("#txthisse").text()-1));
-            $(this).parent('td.text-center').parent('tr.rowClass').remove(); 
-        });
-
-        
-    })
-</script>
 @endsection
+{{-- Scripts --}}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script>
+const autosuggestUrl = '{{ route('qurbani.autosuggest')}}';
+</script>
+

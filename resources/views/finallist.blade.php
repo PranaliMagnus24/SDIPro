@@ -46,6 +46,7 @@
     $receiptarray = [];
     $boxCount = 0;
     $listNo = 1;
+    $mobile = [];
 @endphp
 
 <div class="list-heading">List {{ $listNo }}</div>
@@ -56,7 +57,7 @@
         <tr>
     @endif
 
-    <td class="center-text" valign="top" width="50%">
+    <td class="center-text" valign="top" width="50%" style="padding: 0 10px;">
         <strong>{{ ($boxCount % 200) + 1 }}</strong>
         <table class="styled-table">
             @php $no = 0; @endphp
@@ -75,8 +76,16 @@
                         @endif
                     </td>
                     <td>{{ $hisse['name'] }}</td>
+                     <td>
+                        @if (!in_array($qurbani->id, $mobile))
+                           @if (!empty($qurbani->mobile))
+                            {{ $qurbani->mobile }}
+                           @endif
+                        @endif
+                    </td>
                 </tr>
                 @php $receiptarray[] = $qurbani->id; @endphp
+                @php $mobile[] = $qurbani->id; @endphp
             @endforeach
         </table>
     </td>

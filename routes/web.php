@@ -17,6 +17,7 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\CausesController;
 use App\Http\Controllers\FaqController;
+use App\Http\Controllers\QurbaniDaysController;
 Auth::routes();
 
 
@@ -61,7 +62,11 @@ Route::group(['middleware' => ['auth']], function() {
     Route::resource('products', ProductController::class);
     Route::resource('qurbanis', QurbaniController::class);
     Route::get('collection', [RamzanCollectionController::class, 'index'])->name('collectionlist');
-    Route::get('/final-list/{id}', [PDFController::class, 'generatefinallist'])->name('pdf.finallist');        
+    Route::get('/final-list/{id}', [PDFController::class, 'generatefinallist'])->name('pdf.finallist');
+    ///////Final list day1 and day2
+    Route::get('/finalList/{day}', [PDFController::class, 'finalListView']);
+
+
     Route::get('form', [IjtemaFormController::class, 'index'])->name('formlist');
     Route::get('/razorpay/{id}', [QurbaniController::class, 'initiateRazorpayPayment'])->name('razorpay');
     Route::get('/export-collections', [RamzanCollectionController::class, 'export'])->name('export.collections');
@@ -83,22 +88,29 @@ Route::delete('collection/del/{id}', [RamzanCollectionController::class, 'destro
 Route::get('/collection/view/{id}', [RamzanCollectionController::class, 'view'])->name('collection.view');
 Route::get('/collection/show/{id}', [RamzanCollectionController::class, 'show'])->name('collection.show');
 
-});   
-Route::get('/generate-pdf/{qurbani_id}', [PDFController::class, 'generatePDF'])->name('pdf.generate');
+});
+Route::get('/generate-pdf/{qurbani_id}', [QurbaniController::class, 'generatePDF'])->name('pdf.generate');
 
+///////////Qurbani Controller
 Route::get('/qurbani/pdf/{id}', [QurbaniController::class, 'generate'])->name('qurbani.pdf');
 Route::post('/whatsapp', [QurbaniController::class, 'WhatsAppMessage'])->name('whatsapp');
 Route::get('qurbanis/archive/2024', [QurbaniController::class, 'archive2024'])->name('qurbanis.archive2024');
 
 Route::post('/qurbani/approve/{id}', [QurbaniController::class, 'approveGuest'])->name('qurbani.approve');
-
-
-
-    Route::get('/qurbani/guest-submissions', [QurbaniController::class, 'guestSubmissions'])
+Route::get('/qurbani/guest-submissions', [QurbaniController::class, 'guestSubmissions'])
     ->name('qurbani.guest.submissions')
     ->middleware('permission:qurbani-list');
+Route::get('/qurbani/pdf/{id}', [QurbaniController::class, 'generatePDF'])->name('qurbani.generate.pdf');
 
-    Route::get('/qurbani/pdf/{id}', [QurbaniController::class, 'generatePDF'])->name('qurbani.generate.pdf');
+Route::get('/qurbani/{id}/edit', [QurbaniController::class, 'edit'])->name('qurbani.edit');
+Route::put('/qurbani/{id}/update', [QurbaniController::class, 'update'])->name('qurbani.update');
+
+Route::get('/autosuggest', [QurbaniController::class, 'suggest'])->name('qurbani.autosuggest');
+//////Qurbani Days Controller
+Route::get('days', [QurbaniDaysController::class, 'qurbaniDay'])->name('qurbani.days');
+Route::post('days', [QurbaniDaysController::class, 'qurbaniDayStore'])->name('qurbani.days.store');
+
+
 
 
 //category
@@ -130,7 +142,7 @@ Route::get('/admin/qurbani/guest-approve/{id}', [QurbaniController::class, 'appr
 
 //causes
 
-Route::get('/causeslist', [CausesController::class, 'index'])->name('causeslist');
+Route::get('/causeslist', [CausesController::class, 'index'])->name('causes.causeslist');
 Route::get('/causes/create', [CausesController::class, 'create'])->name('causes.create');
 Route::post('/causes/store', [CausesController::class, 'store'])->name('causes.store');
 Route::get('/causes/edit/{id}', [CausesController::class, 'edit'])->name('causes.edit');

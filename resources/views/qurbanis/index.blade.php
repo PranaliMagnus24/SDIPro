@@ -8,7 +8,7 @@
     <div class="col-md-6 text-md-end">
         @can('qurbani-create')
         <a class="btn btn-success btn-sm" href="{{ route('qurbanis.create') }}">
-            <i class="fa fa-plus"></i> 
+            <i class="fa fa-plus"></i>
         </a>
         @endcan
     </div>
@@ -33,7 +33,7 @@
                 </td>
                 <td>
                         <label for="collected_by">Collected By:</label>
-                        <select name="collected_by" class="form-control">
+                        <select name="collected_by" class="form-select">
                             <option value="">Collected By</option>
                             @foreach($collectedUsers as $user)
                                 <option value="{{ $user->id }}" {{ request('collected_by') == $user->id ? 'selected' : '' }}>
@@ -60,11 +60,11 @@
 </form>
 
 
-@session('success')
-    <div class="alert alert-success" role="alert"> 
+{{-- @session('success')
+    <div class="alert alert-success" role="alert">
         {{ $value }}
     </div>
-@endsession
+@endsession --}}
 
 @php
     function sortLink($label, $field) {
@@ -84,13 +84,13 @@
 @endphp
 
 
-<table class="table table-bordered">
+<table class="table table-bordered nowrap">
     <tr>
         <th>No</th>
         <th>{!! sortLink('Name', 'contact_name') !!}</th>
         <th>{!! sortLink('Mobile', 'mobile') !!}</th>
         <th>{!! sortLink('Hissa', 'hissa') !!}</th>
-        <th width="280px">Action</th>
+        <th width="280px" class="nowrap">Action</th>
     </tr>
 
     @foreach ($qurbanis as $qurbani)
@@ -102,18 +102,20 @@
                 $pdfUrl = "https://sdi.mytasks.in/generate-pdf/" . base64_encode($qurbani->id);
                 $message = "Assalamualaikum\nQurbani Booking Confirmation From *SDI Branch Nasik*.\nReceipt No: " . $qurbani->id . "\nDownload your receipt PDF: " . $pdfUrl;
                 $whatsappUrl = "https://api.whatsapp.com/send/?phone=91" . $qurbani->mobile . "&text=" . urlencode($message);
-            @endphp 
+            @endphp
             <a href="{{ $whatsappUrl }}&amp;type=phone_number&amp;app_absent=0" target="_blank">Whatsapp</a>
         </td>
-       
+
         <td>{{ $qurbani->details->sum('hissa') }}</td>
         <td>
             <form action="{{ route('qurbanis.destroy',$qurbani->id) }}" method="POST">
-            <a class="btn btn-warning btn-sm" href="/generate-pdf/{{ base64_encode($qurbani->id) }}" target="_blank">
-    <i class="fa-regular fa-file-pdf"></i>
-</a>
-
-                <a class="btn btn-info btn-sm" href="{{ route('qurbanis.show',$qurbani->id) }}"><i class="fa-solid fa-list"></i></a>
+                <a class="btn btn-warning btn-sm" href="/generate-pdf/{{ base64_encode($qurbani->id) }}" target="_blank">
+                    <i class="fa-regular fa-file-pdf"></i>
+                </a>
+                <a class="btn btn-info btn-sm" href="{{ route('qurbanis.show',$qurbani->id) }}">
+                    <i class="fa-solid fa-list"></i>
+                </a>
+                <a class="btn btn-primary btn-sm" href="{{ route('qurbani.edit', $qurbani->id)}}"><i class="fas fa-edit"></i></a>
                 @csrf
                 @method('DELETE')
                 @can('qurbani-delete')
@@ -124,7 +126,7 @@
     </tr>
     @endforeach
 
-    
+
 </table>
 <div class="d-flex justify-content-center mt-3">
         {{ $qurbanis->links() }}

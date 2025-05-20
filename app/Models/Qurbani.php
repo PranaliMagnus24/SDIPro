@@ -11,14 +11,14 @@ class Qurbani extends Model
 
     /**
      * The attributes that are mass assignable.
-     *  
+     *
      * @var array
      */
+    protected $table = "qurbanis";
     protected $fillable = [
-        'contact_name', 'mobile','payment_type','payment_status','transaction_number','aqiqah','gender','hissa','upload_payment',
-        'is_approved', 'user_id', 'msg_send' // 👈 Add this!
+        'contact_name', 'mobile','payment_type','payment_status','transaction_number','aqiqah','gender','hissa','upload_payment','receipt_book','is_approved', 'user_id', 'msg_send','qurbani_days','alternative_mobile',
     ];
-    
+
 
     public function users()
     {

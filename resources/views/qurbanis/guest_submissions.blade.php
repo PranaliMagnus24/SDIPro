@@ -24,7 +24,7 @@
                 <td>{{ $qurbani->hissas->count() }}</td>
                 <td>{{ $qurbani->transaction_number }}</td>
                 <td>{{ $qurbani->payment_type }}</td>
-               
+
                 <td>
                     <a href="{{ route('qurbanis.show', $qurbani->id) }}" class="btn btn-info btn-sm">View</a>
                     <form action="{{ route('qurbani.approve', $qurbani->id) }}" method="POST" style="display: inline-block;">
