@@ -384,9 +384,13 @@ $(document).ready(function () {
     }
 
     // On name input change
+    // $(document).on("input", ".name-input", function () {
+    //     let row = $(this).closest("tr");
+    //     handleNameOrGenderChange(row);
+    // });
+
     $(document).on("input", ".name-input", function () {
-        let row = $(this).closest("tr");
-        handleNameOrGenderChange(row);
+        calculateTotal();
     });
 
     // On gender select change
