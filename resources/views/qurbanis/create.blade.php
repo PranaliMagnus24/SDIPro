@@ -159,48 +159,41 @@
     <button class="btn btn-md btn-primary" id="addBtn" type="button">Add New Row</button>
     <button class="btn btn-md btn-primary" id="addBtnHuzur" type="button">Add Huzur Name</button>
 </div>
-
-
-        <div class="row mb-3">
-            <div class="col-md-2">
-                <label for="" class="form-lable"><strong>Total Amount</strong></label>
-                <input type="text" class="form-control" name="total_amount" id="txtamount" readonly>
-            </div>
-
-            <div class="col-md-2">
-                <strong>Payment Method:<span style="color: red;">*</span></strong>
-                <select name="payment_type" id="payment_method" class="form-select" onchange="togglePaymentDetails(this);">
-                    <option value="">Payment Method</option>
-                    <option value="Cash" {{ old('payment_type') == 'Cash' ? 'selected' : '' }}>Cash</option>
-                    <option value="RazorPay" {{ old('payment_type') == 'Online' ? 'selected' : '' }}>Online</option>
-                </select>
-                 @error('payment_type')
-                    <span class="text-danger">{{ $message }}</span>
-                @enderror
-            </div>
-                <div class="col-md-3" id="razorpay-details" style="display: none;">
-                    <label for="transaction_number"><strong>Transaction ID:<span style="color: red;">*</span></strong></label>
-                    <input type="text" name="transaction_number" id="transaction_number"
-                    class="form-control @error('transaction_number') is-invalid @enderror"
-                    placeholder="Enter Transaction ID">
-                    @error('transaction_number')
-                    <span class="text-danger">{{ $message }}</span>
-                    @enderror
-                </div>
-                <div class="col-md-3 attachement" style="display: none;" id="attachement">
-                    <label for="" class="form-label"><strong>Upload attachement</strong></label>
-                    <input type="file" class="form-control" name="upload_payment">
-                </div>
-
-
-        </div>
-        <div class="col-md-12 text-center">
-           <button type="submit" class="btn btn-success btn-sm" id="saveButton">
-                <span id="buttonText"><i class="fa-solid fa-floppy-disk"></i> Submit</span>
-                <span id="buttonLoader" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-            </button>
-        </div>
+<div class="row mb-3">
+    <div class="col-md-2">
+        <label for="" class="form-lable"><strong>Total Amount</strong></label>
+        <input type="text" class="form-control" name="total_amount" id="txtamount" readonly>
     </div>
+    <div class="col-md-2">
+        <strong>Payment Method:<span style="color: red;">*</span></strong>
+        <select name="payment_type" id="payment_method" class="form-select" onchange="togglePaymentDetails(this);">
+            <option value="">Payment Method</option>
+            <option value="Cash" {{ old('payment_type') == 'Cash' ? 'selected' : '' }}>Cash</option>
+            <option value="RazorPay" {{ old('payment_type') == 'Online' ? 'selected' : '' }}>Online</option>
+        </select>
+        @error('payment_type')
+        <span class="text-danger">{{ $message }}</span>
+        @enderror
+    </div>
+    <div class="col-md-3" id="razorpay-details" style="display: none;">
+        <label for="transaction_number"><strong>Transaction ID:<span style="color: red;">*</span></strong></label>
+        <input type="text" name="transaction_number" id="transaction_number" class="form-control @error('transaction_number') is-invalid @enderror" placeholder="Enter Transaction ID">
+        @error('transaction_number')
+        <span class="text-danger">{{ $message }}</span>
+        @enderror
+    </div>
+    <div class="col-md-3 attachement" style="display: none;" id="attachement">
+        <label for="" class="form-label"><strong>Upload attachement</strong></label>
+        <input type="file" class="form-control" name="upload_payment">
+    </div>
+</div>
+<div class="col-md-12 text-center">
+    <button type="submit" class="btn btn-success btn-sm" id="saveButton">
+        <span id="buttonText"><i class="fa-solid fa-floppy-disk"></i> Submit</span>
+        <span id="buttonLoader" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+    </button>
+</div>
+</div>
 </form>
 @endsection
 {{-- Scripts --}}
@@ -208,16 +201,14 @@
 <script>
     const autosuggestUrl = '{{ route('qurbani.autosuggest')}}';
 
+    ////Loader logic
 function disableSubmitButton() {
         var saveButton = document.getElementById("saveButton");
         var formLoader = document.getElementById("formLoader");
-        // If the button is already disabled, prevent submission
         if (saveButton.disabled) {
             return false;
         }
-        // Disable the submit button immediately
         saveButton.disabled = true;
-        // Show the full-screen loader
         formLoader.classList.remove("d-none");
         return true;
     }

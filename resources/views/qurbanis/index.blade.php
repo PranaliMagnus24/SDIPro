@@ -113,7 +113,7 @@
                     <i class="fa-regular fa-file-pdf"></i>
                 </a>
                 <a class="btn btn-info btn-sm" href="{{ route('qurbanis.show',$qurbani->id) }}">
-                    <i class="fa-solid fa-list"></i>
+                    <i class="fas fa-eye"></i>
                 </a>
                 <a class="btn btn-primary btn-sm" href="{{ route('qurbani.edit', $qurbani->id)}}"><i class="fas fa-edit"></i></a>
                 @csrf

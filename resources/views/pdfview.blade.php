@@ -106,26 +106,23 @@
 <body>
     <table class="styled-table" style="border: 1px solid black;">
         <!----------Heade logo------->
-<tr>
-    <td colspan="2" style="padding: 10px;">
-        <div style="display: flex; align-items: center; justify-content: center; position: relative;">
-            <!-- Logo (absolute left) -->
-            <div style="position: absolute; left: 0;">
-                <img src="{{ $logoPath }}" alt="Logo" style="height: 50px; width: 50px;">
-            </div>
-
-            <!-- Centered Content -->
-            <div style="text-align: center; width: 100%;">
-                <strong>{{ $general->title ?? '' }}</strong><br>
-                {{ $general->subtitle ?? '' }}<br>
-                <small>{{ $general->address ?? '' }}</small><br>
-                <small>{{ $general->contact ?? '' }}</small>
-            </div>
-        </div>
-    </td>
-</tr>
-
-
+        <tr>
+            <td colspan="2" style="padding: 10px;">
+                <div style="display: flex; align-items: center; justify-content: center; position: relative;">
+                    <!-- Logo (absolute left) -->
+                    <div style="position: absolute; left: 0;">
+                        <img src="{{ $logoPath }}" alt="Logo" style="height: 50px; width: 50px;">
+                    </div>
+                    <!-- Centered Content -->
+                    <div style="text-align: center; width: 100%;">
+                        <strong>{{ $general->title ?? '' }}</strong><br>
+                        {{ $general->subtitle ?? '' }}<br>
+                        <small>{{ $general->address ?? '' }}</small><br>
+                        <small>{{ $general->contact ?? '' }}</small>
+                    </div>
+                </div>
+            </td>
+        </tr>
         <tr class="green-row">
             <td colspan="2" style="font-size: 10px;">
                 <strong>Bagair Gosht Wali Hisso Ki Qurbani</strong> |
@@ -134,20 +131,19 @@
             </td>
         </tr>
         <tr>
-            <td class="left-align">
+            <td class="left-align" colspan="2">
                 <strong>Name:</strong> <strong>{{ ucfirst($qurbani->contact_name) }}</strong>
             </td>
-            <td class="left-align">{{ ucfirst($qurbani->qurbani_days)}}</td>
         </tr>
         <tr>
-<td class="left-align">
-    <strong>Contact:</strong> {{ $qurbani->mobile }}
-    @if(!empty($qurbani->alternative_mobile))
-        / {{ $qurbani->alternative_mobile }}
-    @endif
-</td>
-
-            <td class="left-align"><strong>Date:</strong> {{ $qurbani->created_at->format('d-m-Y') }}</td>
+            <td class="left-align">
+                <strong>Contact:</strong> {{ $qurbani->mobile }}
+                @if(!empty($qurbani->alternative_mobile))
+                / {{ $qurbani->alternative_mobile }}
+                @endif
+            </td>
+            <td class="left-align"><strong>Date:</strong> {{ $qurbani->created_at->format('d-m-Y') }} &nbsp; &nbsp; <strong>{{ ucfirst($qurbani->qurbani_days)}}</strong>
+            </td>
         </tr>
         <tr>
             <td class="left-align"><strong>Payment Mode:</strong> {{ $qurbani->payment_type }}</td>
@@ -176,7 +172,7 @@
                         if ($hissa->aqiqah == 1) {
                             if ($hissa->gender == 'Male') {
                                 $displayName .= ' (Aqiqah Male)';
-                                $hissaCount = 2;
+                                $hissaCount = 1;
                             } elseif ($hissa->gender == 'Female') {
                                 $displayName .= ' (Aqiqah Female)';
                                 $hissaCount = 1;
