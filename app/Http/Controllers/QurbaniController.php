@@ -248,6 +248,7 @@ class QurbaniController extends Controller
         'Cash' => 'Cash Paid',
         'RazorPay' => 'Paid Online',
     ];
+
     $qurbani = Qurbani::findOrFail($id);
     $qurbani->user_id = Auth::id() ?? 0;
     $qurbani->contact_name = $request->contact_name;
@@ -268,25 +269,30 @@ class QurbaniController extends Controller
     }
 
     if ($qurbani->save()) {
+        // Delete old Hissa data
+        QurbaniHisse::where('qurbani_id', $qurbani->id)->delete();
 
-    QurbaniHisse::where('qurbani_id', $qurbani->id)->delete();
+        // Save new Hissa data
+        foreach ($request->name as $key => $value) {
+            $qurbanihisse = new QurbaniHisse();
+            $qurbanihisse->user_id = Auth::id() ?? 0;
+            $qurbanihisse->qurbani_id = $qurbani->id;
+            $qurbanihisse->name = $value;
+            $qurbanihisse->aqiqah = !empty($request->aqiqah[$key]) ? '1' : '0';
+            $qurbanihisse->gender = $request->gender[$key] ?? null;
+            $qurbanihisse->hissa = (int)($request->hissa[$key] ?? 1);
+            $qurbanihisse->save();
+        }
 
-    foreach ($request->name as $key => $value) {
-        $qurbanihisse = new QurbaniHisse();
-        $qurbanihisse->user_id = Auth::id() ?? 0;
-        $qurbanihisse->qurbani_id = $qurbani->id;
-        $qurbanihisse->name = $value;
-        $qurbanihisse->aqiqah = !empty($request->aqiqah[$key]) ? '1' : '0';
-        $qurbanihisse->gender = $request->gender[$key] ?? null;
-        $qurbanihisse->hissa = (int)($request->hissa[$key] ?? 1);
-        $qurbanihisse->save();
+        // Generate new PDF and dispatch jobs
+        GenerateQurbaniPdfJob::dispatch($qurbani->id, $request->mobile);
+
+        return redirect()->route('qurbanis.index')->with('success', 'Qurbani Updated Successfully!');
     }
 
-    GenerateQurbaniPdfJob::dispatch($qurbani->id, $request->mobile);
-    return redirect()->route('qurbanis.index')->with('success', 'Qurbani Updated Successfully!');
-    }
     return redirect()->route('qurbanis.index')->with('error', 'Qurbani Update Failed.');
 }
+
 
 
    ////////Delete  Qurbani Data with Data

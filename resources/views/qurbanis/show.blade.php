@@ -69,7 +69,7 @@
                         <th>Payment Type</th>
                         <td>Cash</td>
                         <th>Paid Amount</th>
-                        <td>&#8377; {{ $totalAmount }}</td>
+                        <td>&#8377; {{ $qurbani->total_amount }}</td>
                     </tr>
                     @endif
                 </tbody>
