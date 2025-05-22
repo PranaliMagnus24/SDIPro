@@ -16,7 +16,7 @@ class Qurbani extends Model
      */
     protected $table = "qurbanis";
     protected $fillable = [
-        'contact_name', 'mobile','payment_type','payment_status','transaction_number','aqiqah','gender','hissa','upload_payment','receipt_book','is_approved', 'user_id', 'msg_send','qurbani_days','alternative_mobile',
+        'contact_name', 'mobile','payment_type','payment_status','transaction_number','aqiqah','gender','hissa','upload_payment','receipt_book','is_approved', 'user_id', 'msg_send','qurbani_days','alternative_mobile','total_amount',
     ];
 
 

@@ -15,6 +15,7 @@ use Razorpay\Api\Api;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
+use App\Jobs\GenerateQurbaniPdfJob;
 
 class QurbaniController extends Controller
 {
@@ -131,7 +132,6 @@ class QurbaniController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        // Validate input
         $rules = [
             'contact_name' => 'required|string|max:255',
             'receipt_book' => 'nullable|string|max:255',
@@ -171,6 +171,7 @@ class QurbaniController extends Controller
         $qurbani->payment_type = $request->payment_type === 'RazorPay' ? 'Online' : 'Cash';
         $qurbani->payment_status = $paymentStatus[$request->payment_type];
         $qurbani->transaction_number = $request->transaction_number ?? null;
+        $qurbani->total_amount = $request->total_amount;
 
         if ($request->hasFile('upload_payment')) {
         $file = $request->file('upload_payment');
@@ -191,36 +192,8 @@ class QurbaniController extends Controller
                 $qurbanihisse->hissa = (int)($request->hissa[$key] ?? 1);
                 $qurbanihisse->save();
             }
-            $qurbanihisse = QurbaniHisse::where('qurbani_id', $qurbani->id)->get();
-            $users = User::find($qurbani->user_id);
-            $general = General::first();
-            $logoPath = public_path('logourdu.png');
-            $qrPath = public_path('qrcode.jpg');
-            $footerImgPath = public_path('DailyPatti.png');
-            $pdf = Pdf::loadView('pdfview', [
-                'qurbani' => $qurbani,
-                'qurbanihisse' => $qurbanihisse,
-                'users' => $users,
-                'general' => $general,
-                'logoPath' => $logoPath,
-                'qrPath' => $qrPath,
-                'footerImgPath' => $footerImgPath
-                ])
-                ->setPaper([0, 0, 500, 380], 'portrait')
-                ->setOptions([
-                    'isRemoteEnabled' => true,
-                    'isHtml5ParserEnabled' => true,
-                    'isPhpEnabled' => true,
-                ]);
-                $pdfFolder = public_path('pdfs');
-                if (!file_exists($pdfFolder)) {
-                    mkdir($pdfFolder, 0777, true);
-                }
-                $pdfPath = "{$pdfFolder}/qurbani_{$qurbani->id}.pdf";
-                $pdf->save($pdfPath);
-                $pdfUrl = asset("pdfs/qurbani_{$qurbani->id}.pdf");
 
-                $this->WhatsAppMessage($request->mobile, $pdfUrl);
+            GenerateQurbaniPdfJob::dispatch($qurbani->id, $request->mobile);
 
             return redirect()->route('qurbanis.index')->with('success', 'Qurbani Created Successfully!');
         }
@@ -228,49 +201,15 @@ class QurbaniController extends Controller
         return redirect()->route('qurbanis.index')->with('error', 'Qurbani Creation Failed.');
     }
 
-    private function WhatsAppMessage($mobile, $pdfUrl)
-{
-    $apiKey = "68400ea593ee4cc098ef960d9c5c5c47";
-    $apiUrl = "https://whatsappnew.bestsms.co.in/wapp/v2/api/send";
-
-    $postData = [
-        'apikey' => $apiKey,
-        'mobile' => $mobile,
-        'msg' => "Here is your Qurbani Receipt PDF: $pdfUrl",
-        'pdf' => $pdfUrl
-    ];
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $apiUrl);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
-
-    $response = curl_exec($ch);
-
-    if (curl_errno($ch)) {
-        return "Curl error: " . curl_error($ch);
-    }
-
-    curl_close($ch);
-
-    return $response;
-}
-
-
-
+    ////Display Qurbani Data with Hissa
     public function show(Qurbani $qurbani): View
     {
         $hisses = QurbaniHisse::where('qurbani_id',$qurbani->id)->get();
-        //echo "<pre>"; print_r($hisse);
         return view('qurbanis.show',compact('qurbani','hisses'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Product  $product
-     * @return \Illuminate\Http\Response
-     */
+
+    ///Edit Qurbani Data with Hissa
     public function edit($id): View
     {
         $qurbani = Qurbani::findOrFail($id);
@@ -279,13 +218,8 @@ class QurbaniController extends Controller
         return view('qurbanis.edit',compact('qurbani','qurbanihisse','isEditMode'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Product  $product
-     * @return \Illuminate\Http\Response
-     */
+
+    ////Update Qurbani Data with Hissa
   public function update(Request $request, $id): RedirectResponse
 {
     $rules = [
@@ -314,8 +248,6 @@ class QurbaniController extends Controller
         'Cash' => 'Cash Paid',
         'RazorPay' => 'Paid Online',
     ];
-
-    // Fetch existing Qurbani
     $qurbani = Qurbani::findOrFail($id);
     $qurbani->user_id = Auth::id() ?? 0;
     $qurbani->contact_name = $request->contact_name;
@@ -326,8 +258,8 @@ class QurbaniController extends Controller
     $qurbani->payment_type = $request->payment_type === 'RazorPay' ? 'Online' : 'Cash';
     $qurbani->payment_status = $paymentStatus[$request->payment_type];
     $qurbani->transaction_number = $request->transaction_number ?? null;
+    $qurbani->total_amount = $request->total_amount;
 
-    // ✅ Handle file upload (new or updated)
     if ($request->hasFile('upload_payment')) {
         $file = $request->file('upload_payment');
         $filename = time() . '_' . $file->getClientOriginalName();
@@ -336,70 +268,28 @@ class QurbaniController extends Controller
     }
 
     if ($qurbani->save()) {
-        // Delete old Hissa records
-        QurbaniHisse::where('qurbani_id', $qurbani->id)->delete();
 
-        // Save new Hissa records
-        foreach ($request->name as $key => $value) {
-            $qurbanihisse = new QurbaniHisse();
-            $qurbanihisse->user_id = Auth::id() ?? 0;
-            $qurbanihisse->qurbani_id = $qurbani->id;
-            $qurbanihisse->name = $value;
-            $qurbanihisse->aqiqah = !empty($request->aqiqah[$key]) ? '1' : '0';
-            $qurbanihisse->gender = $request->gender[$key] ?? null;
-            $qurbanihisse->hissa = (int)($request->hissa[$key] ?? 1);
-            $qurbanihisse->save();
-        }
+    QurbaniHisse::where('qurbani_id', $qurbani->id)->delete();
 
-        // Generate updated PDF
-        $qurbanihisse = QurbaniHisse::where('qurbani_id', $qurbani->id)->get();
-        $users = User::find($qurbani->user_id);
-        $general = General::first();
-        $logoPath = public_path('logourdu.png');
-        $qrPath = public_path('qrcode.jpg');
-        $footerImgPath = public_path('DailyPatti.png');
-
-        $pdf = Pdf::loadView('pdfview', [
-            'qurbani' => $qurbani,
-            'qurbanihisse' => $qurbanihisse,
-            'users' => $users,
-            'general' => $general,
-            'logoPath' => $logoPath,
-            'qrPath' => $qrPath,
-            'footerImgPath' => $footerImgPath
-        ])
-        ->setPaper([0, 0, 500, 380], 'portrait')
-        ->setOptions([
-            'isRemoteEnabled' => true,
-            'isHtml5ParserEnabled' => true,
-            'isPhpEnabled' => true,
-        ]);
-
-        $pdfFolder = public_path('pdfs');
-        if (!file_exists($pdfFolder)) {
-            mkdir($pdfFolder, 0777, true);
-        }
-
-        $pdfPath = "{$pdfFolder}/qurbani_{$qurbani->id}.pdf";
-        $pdf->save($pdfPath);
-        $pdfUrl = asset("pdfs/qurbani_{$qurbani->id}.pdf");
-
-        $this->WhatsAppMessage($request->mobile, $pdfUrl);
-
-        return redirect()->route('qurbanis.index')->with('success', 'Qurbani Updated Successfully!');
+    foreach ($request->name as $key => $value) {
+        $qurbanihisse = new QurbaniHisse();
+        $qurbanihisse->user_id = Auth::id() ?? 0;
+        $qurbanihisse->qurbani_id = $qurbani->id;
+        $qurbanihisse->name = $value;
+        $qurbanihisse->aqiqah = !empty($request->aqiqah[$key]) ? '1' : '0';
+        $qurbanihisse->gender = $request->gender[$key] ?? null;
+        $qurbanihisse->hissa = (int)($request->hissa[$key] ?? 1);
+        $qurbanihisse->save();
     }
 
+    GenerateQurbaniPdfJob::dispatch($qurbani->id, $request->mobile);
+    return redirect()->route('qurbanis.index')->with('success', 'Qurbani Updated Successfully!');
+    }
     return redirect()->route('qurbanis.index')->with('error', 'Qurbani Update Failed.');
 }
 
 
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Product  $product
-     * @return \Illuminate\Http\Response
-     */
+   ////////Delete  Qurbani Data with Data
     public function destroy(Qurbani $qurbani): RedirectResponse
     {
         $qurbani->delete();
@@ -431,12 +321,6 @@ public function archive2024()
     return view('qurbanis.archive', compact('qurbanis', 'collectedUsers'));
 }
 
-    // private function WhatsAppMessage($mobile, $pdfUrl)
-    // {
-    //     // Dummy function. Replace with your real implementation.
-    //     // Example:
-    //     // Http::post("https://api.whatsapp.com/send?phone=$mobile&text=$pdfUrl");
-    // }
 
     public function guestSubmissions()
     {
@@ -456,6 +340,8 @@ public function archive2024()
 
         return redirect()->back()->with('success', 'Approved Successfully');
     }
+
+    //////Pdf Generate Manually
     public function generatePDF($qurbani_id)
     {
         $qurbaniid = base64_decode($qurbani_id);
@@ -478,7 +364,6 @@ public function archive2024()
         ])->setPaper('A5', 'portrait');
 
         return $pdf->download('qurbani.pdf');
-        // return view('pdfview', compact('qurbani', 'qurbanihisse', 'users', 'general'));
     }
 
 

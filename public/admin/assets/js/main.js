@@ -188,7 +188,7 @@ $(document).ready(function () {
             }
         });
 
-        $("#txtamount").text(totalAmount.toFixed(2));
+        $("#txtamount").val(totalAmount.toFixed(2));
     }
 
     // Auto-suggest for contact name and mobile

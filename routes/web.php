@@ -89,19 +89,17 @@ Route::get('/collection/view/{id}', [RamzanCollectionController::class, 'view'])
 Route::get('/collection/show/{id}', [RamzanCollectionController::class, 'show'])->name('collection.show');
 
 });
-Route::get('/generate-pdf/{qurbani_id}', [QurbaniController::class, 'generatePDF'])->name('pdf.generate');
+
 
 ///////////Qurbani Controller
-Route::get('/qurbani/pdf/{id}', [QurbaniController::class, 'generate'])->name('qurbani.pdf');
 Route::post('/whatsapp', [QurbaniController::class, 'WhatsAppMessage'])->name('whatsapp');
+Route::get('/generate-pdf/{qurbani_id}', [QurbaniController::class, 'generatePDF'])->name('pdf.generate');
 Route::get('qurbanis/archive/2024', [QurbaniController::class, 'archive2024'])->name('qurbanis.archive2024');
 
 Route::post('/qurbani/approve/{id}', [QurbaniController::class, 'approveGuest'])->name('qurbani.approve');
 Route::get('/qurbani/guest-submissions', [QurbaniController::class, 'guestSubmissions'])
     ->name('qurbani.guest.submissions')
     ->middleware('permission:qurbani-list');
-Route::get('/qurbani/pdf/{id}', [QurbaniController::class, 'generatePDF'])->name('qurbani.generate.pdf');
-
 Route::get('/qurbani/{id}/edit', [QurbaniController::class, 'edit'])->name('qurbani.edit');
 Route::put('/qurbani/{id}/update', [QurbaniController::class, 'update'])->name('qurbani.update');
 
